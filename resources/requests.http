@@ -1,5 +1,5 @@
 ### POST Search for games
-POST http://localhost:8080/v1/search
+POST {{baseUrl}}/v1/search
 Content-Type: application/json
 
 # Body extracted directly from the browser
@@ -49,12 +49,12 @@ Content-Type: application/json
 
 ### GET Search for games
 
-GET http://localhost:8080/v1/search?q=final+fantasy+viii&page=1
+GET {{baseUrl}}/v1/search?q=final+fantasy+viii&page=1
 
 ### PUT Replace the search key
 
-PUT http://localhost:8080/v1/replace_key?key=invalid_key
+PUT {{baseUrl}}/v1/replace_key?key=invalid_key
 
 ### Metrics
 
-GET http://localhost:8080/metrics
+GET {{baseUrl}}/metrics
