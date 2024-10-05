@@ -1,7 +1,7 @@
 pub(crate) mod client;
 pub(crate) mod models;
 
-use std::sync::{Arc, LazyLock, OnceLock};
+use std::sync::LazyLock;
 use async_recursion::async_recursion;
 pub(crate) use client::HltbClient;
 pub(crate) use models::*;
@@ -9,10 +9,8 @@ pub(crate) use models::*;
 use blake2::Blake2bVar;
 use blake2::digest::{Update, VariableOutput};
 use color_eyre::eyre::bail;
-use color_eyre::Report;
 use log::{info, warn};
-use moka::Entry;
-use moka::future::{Cache, FutureExt};
+use moka::future::Cache;
 use prometheus::{register_counter_vec, CounterVec};
 use reqwest::StatusCode;
 use thiserror::Error;
@@ -25,15 +23,18 @@ static CACHE_HIT: LazyLock<CounterVec> = LazyLock::new(|| {
 
 #[derive(Debug, Error)]
 pub(crate) enum Error {
+    /// Failed to call the HowLongToBeat API
     #[error("Failed to call HowLongToBeat API, status code: {status_code}")]
-    HttpError {
+    Api {
         status_code: StatusCode,
         body: String,
     },
+    /// Generic error for reqwest
     #[error(transparent)]
-    ReqwestError(#[from] reqwest::Error),
+    Reqwest(#[from] reqwest::Error),
+    /// Failed to serialize request body
     #[error(transparent)]
-    SerializationError(#[from] serde_json::Error),
+    Serialization(#[from] serde_json::Error),
 }
 
 #[derive(Debug, Clone)]
@@ -90,7 +91,7 @@ impl HowLongToBeat {
             }
             Err(e) => {
                 match &*e {
-                    Error::HttpError { status_code, body: _ } if status_code == &StatusCode::NOT_FOUND => {
+                    Error::Api { status_code, body: _ } if status_code == &StatusCode::NOT_FOUND => {
                         if depth >= 2 {
                             bail!("Failed to call HLTB API status = NOT_FOUND, exausted retries")
                         }

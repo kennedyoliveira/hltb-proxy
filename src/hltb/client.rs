@@ -1,11 +1,9 @@
-use std::cell::OnceCell;
 use std::fmt::{Display, Formatter};
 use std::sync::LazyLock;
 use color_eyre::eyre::bail;
 use log::{error, warn};
 use prometheus::{register_histogram, Histogram};
 use scraper::{Html, Selector};
-use serde::{Deserialize, Serialize};
 use tracing::{debug, info, instrument, trace};
 use regex::Regex;
 use crate::hltb::Error;
@@ -82,6 +80,7 @@ pub(crate) struct HltbClient {
 }
 
 impl HltbClient {
+    #[allow(dead_code)]
     pub(crate) fn new(http_client: reqwest::Client) -> Self {
         Self { http_client }
     }
@@ -111,7 +110,7 @@ impl HltbClient {
         let resp_body = resp.text().await?;
 
         if is_error {
-            return Err(Error::HttpError {
+            return Err(Error::Api {
                 status_code,
                 body: resp_body,
             });
@@ -144,7 +143,7 @@ impl HltbClient {
 
         debug!("Found {} scripts: {:?}", scripts.len(), scripts);
         info!("Searching for search key in scripts");
-        if let Some(idx) = scripts.iter().position(|s| Self::is_app_script(s)) {
+        if let Some(idx) = scripts.iter().position(Self::is_app_script) {
             info!("Found the script with name starting with '_app' at index {}", idx);
             let script = scripts.remove(idx);
 
@@ -190,7 +189,7 @@ impl HltbClient {
 
         info!("Searching for search key in all scripts");
         for script in &scripts {
-            match self.search_key(&script).await {
+            match self.search_key(script).await {
                 Ok(Some(search_key)) => {
                     info!("Found search key in script {}", script);
                     return Ok(Some(search_key));
@@ -211,7 +210,7 @@ impl HltbClient {
 
     fn is_app_script(script: &ScriptTag) -> bool {
         match script.get_file_name() {
-            Some(file_name) => file_name.to_lowercase().find("_app").is_some(),
+            Some(file_name) => file_name.to_lowercase().contains("_app"),
             None => false
         }
     }
@@ -282,14 +281,14 @@ mod tests {
         let search_key = client.find_search_key().await.unwrap();
 
         println!("{:?}", search_key);
-        assert_eq!(search_key.is_some(), true);
+        assert!(search_key.is_some());
 
         info!("Testing if the search key is correct");
 
         let resp = client.query(&search_key.unwrap(), &QueryOptions::new("final fantasy", 1)).await.unwrap();
         println!("{}", resp);
         // sometimes it simply replies as {}, so needs to be bigger than 2
-        assert_eq!(resp.len() > 2, true);
+        assert!(resp.len() > 2);
     }
 
     #[test]

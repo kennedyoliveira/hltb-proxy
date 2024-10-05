@@ -18,7 +18,7 @@ use tracing::{info, Level};
 use tracing::level_filters::LevelFilter;
 use crate::hltb::{HltbClient, HowLongToBeat};
 use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::{EnvFilter, Layer, Registry};
+use tracing_subscriber::{EnvFilter, Registry};
 use tracing_subscriber::util::SubscriberInitExt;
 
 pub(crate) mod hltb;

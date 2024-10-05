@@ -33,6 +33,7 @@ impl QueryOptions {
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub(crate) struct SearchOptions {
     games: GamesOptions,
     users: UsersOptions,
@@ -42,18 +43,6 @@ pub(crate) struct SearchOptions {
     randomizer: u32,
 }
 
-impl Default for SearchOptions {
-    fn default() -> Self {
-        Self {
-            games: GamesOptions::default(),
-            users: UsersOptions::default(),
-            lists: ListsOptions::default(),
-            filter: String::from(""),
-            sort: 0,
-            randomizer: 0,
-        }
-    }
-}
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -113,51 +102,29 @@ impl Default for ListsOptions {
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub(crate) struct RangeTime {
     min: Option<String>,
     max: Option<String>,
 }
 
-impl Default for RangeTime {
-    fn default() -> Self {
-        Self {
-            min: None,
-            max: None,
-        }
-    }
-}
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub(crate) struct Gameplay {
     perspective: String,
     flow: String,
     genre: String,
 }
 
-impl Default for Gameplay {
-    fn default() -> Self {
-        Self {
-            perspective: String::from(""),
-            flow: String::from(""),
-            genre: String::from(""),
-        }
-    }
-}
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub(crate) struct RangeYear {
     min: String,
     max: String,
 }
 
 // Default from site as of 2024/10/03
-impl Default for RangeYear {
-    fn default() -> Self {
-        Self {
-            min: String::from(""),
-            max: String::from(""),
-        }
-    }
-}
