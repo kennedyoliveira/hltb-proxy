@@ -1,0 +1,46 @@
+[package]
+name = "hltb-proxy"
+version = "0.1.0"
+edition = "2021"
+description = "Lightweight proxy for How Long to Beat API, with caching and CORS support"
+authors = [
+    "Kennedy Oliveira <kennedyroliveira@gmail.com>"
+]
+
+[dependencies]
+# utils
+color-eyre = "0.6"
+urlencoding = "2.1"
+scraper = "0.20"
+moka = { version = "0.12", features = ["future"] }
+blake2 = "0.10"
+hex = "0.4"
+clap = { version = "4.5", features = ["derive", "env"] }
+dotenvy = "0.15"
+thiserror = "1.0"
+regex = "1.11.0"
+
+# async
+tokio = { version = "1.40", features = ["macros", "rt-multi-thread", "parking_lot", "signal"] }
+async-recursion = "1.1"
+
+# http
+axum = { version = "0.7", features = ["macros"] }
+reqwest = { version = "0.12", features = ["gzip"] }
+tower-http = { version = "0.6", features = ["compression-full", "trace", "cors"] }
+
+# serde
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# tracing
+tracing = "0.1"
+tracing-appender = "0.2"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-logfmt = "0.3"
+log = "0.4.22"
+prometheus = "0.13"
+axum-otel-metrics = { git = "https://github.com/kennedyoliveira/axum-otel-metrics" }
+
+[dev-dependencies]
+tracing-test = "0.2"

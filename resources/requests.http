@@ -1,0 +1,60 @@
+### POST Search for games
+POST http://localhost:8080/v1/search
+Content-Type: application/json
+
+# Body extracted directly from the browser
+
+{
+  "searchType": "games",
+  "searchTerms": [
+    "final",
+    "fantasy",
+    "vii"
+  ],
+  "searchPage": 1,
+  "size": 20,
+  "searchOptions": {
+    "games": {
+      "userId": 0,
+      "platform": "",
+      "sortCategory": "popular",
+      "rangeCategory": "main",
+      "rangeTime": {
+        "min": null,
+        "max": null
+      },
+      "gameplay": {
+        "perspective": "",
+        "flow": "",
+        "genre": ""
+      },
+      "rangeYear": {
+        "min": "",
+        "max": ""
+      },
+      "modifier": ""
+    },
+    "users": {
+      "sortCategory": "postcount"
+    },
+    "lists": {
+      "sortCategory": "follows"
+    },
+    "filter": "",
+    "sort": 0,
+    "randomizer": 0
+  },
+  "useCache": true
+}
+
+### GET Search for games
+
+GET http://localhost:8080/v1/search?q=final+fantasy+viii&page=1
+
+### PUT Replace the search key
+
+PUT http://localhost:8080/v1/replace_key?key=invalid_key
+
+### Metrics
+
+GET http://localhost:8080/metrics
