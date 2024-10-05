@@ -6,6 +6,7 @@ description = "Lightweight proxy for How Long to Beat API, with caching and CORS
 authors = [
     "Kennedy Oliveira <kennedyroliveira@gmail.com>"
 ]
+publish = false
 
 [dependencies]
 # utils
