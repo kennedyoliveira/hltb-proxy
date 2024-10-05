@@ -17,6 +17,7 @@ lint:
 [doc('Fix linter issues')]
 fix:
     cargo fix
+    cargo fmt
 
 [doc('Run tests')]
 test:
