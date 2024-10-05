@@ -1,14 +1,11 @@
 use crate::hltb::{HltbClient, HowLongToBeat};
-use axum::extract::{Query, State};
 use axum::http::Method;
-use axum::routing::put;
 use axum::Router;
 use axum_otel_metrics::HttpMetricsLayerBuilder;
 use clap::Parser;
 use dotenvy::dotenv;
 use log::debug;
 use moka::future::Cache;
-use reqwest::StatusCode;
 use serde::Deserialize;
 use std::time::Duration;
 use tokio::net::TcpListener;
@@ -59,14 +56,6 @@ pub(crate) struct AppState {
 #[derive(Debug, Clone, Deserialize)]
 struct ReplaceKeyQueryArgs {
     key: String,
-}
-
-async fn replace_key_handler(
-    State(state): State<AppState>,
-    Query(args): Query<ReplaceKeyQueryArgs>,
-) -> StatusCode {
-    state.hltb.replace_search_key(&args.key).await;
-    StatusCode::NO_CONTENT
 }
 
 #[tokio::main]
@@ -136,11 +125,6 @@ async fn main() -> color_eyre::Result<()> {
     let app_state = AppState { hltb };
 
     let router = Router::new().merge(rest::routes()).merge(metrics.routes());
-
-    // this is mostly for test purposes
-    // should not be on release
-    #[cfg(debug_assertions)]
-    let router = router.route("/v1/replace_key", put(replace_key_handler));
 
     let app = router
         .layer(metrics)

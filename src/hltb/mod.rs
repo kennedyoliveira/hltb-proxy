@@ -5,7 +5,6 @@ pub(crate) use client::HltbClient;
 pub(crate) use models::*;
 
 use async_recursion::async_recursion;
-use std::sync::LazyLock;
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
 use color_eyre::eyre::bail;
@@ -13,6 +12,7 @@ use log::{info, warn};
 use moka::future::Cache;
 use prometheus::{register_counter_vec, CounterVec};
 use reqwest::StatusCode;
+use std::sync::LazyLock;
 use thiserror::Error;
 use tracing::{debug, error, instrument};
 
@@ -117,7 +117,7 @@ impl HowLongToBeat {
         }
     }
 
-    async fn get_search_key(&self) -> color_eyre::Result<String> {
+    pub(crate) async fn get_search_key(&self) -> color_eyre::Result<String> {
         let search_key = self
             .cache
             .optionally_get_with_by_ref(SEARCH_KEY_CACHE_KEY, async {

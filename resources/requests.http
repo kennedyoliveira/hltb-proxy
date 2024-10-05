@@ -53,7 +53,11 @@ GET {{baseUrl}}/v1/search?q=final+fantasy+viii&page=1
 
 ### PUT Replace the search key
 
-PUT {{baseUrl}}/v1/replace_key?key=invalid_key
+PUT {{baseUrl}}/v1/search_key?key=invalid_key
+
+### GET search key
+
+GET {{baseUrl}}/v1/search_key
 
 ### Metrics
 
