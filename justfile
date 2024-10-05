@@ -38,3 +38,6 @@ docker-buildx:
 [doc('Build a multiarch docker image')]
 docker-build-multiarch:
     docker buildx build --platform linux/amd64,linux/arm64 -t kennedyoliveira/hltb-proxy .
+
+prepare-release:
+    git-cliff --bump -o CHANGELOG.md
