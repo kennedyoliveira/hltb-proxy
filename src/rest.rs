@@ -19,26 +19,20 @@ pub(crate) fn routes() -> Router<AppState> {
         .route("/v1/search", get(get_search_handler))
 }
 
-async fn post_search_handler(State(app_state): State<AppState>,
-                             Json(query_options): Json<QueryOptions>) -> impl IntoResponse {
+async fn post_search_handler(
+    State(app_state): State<AppState>,
+    Json(query_options): Json<QueryOptions>,
+) -> impl IntoResponse {
     let search_results = app_state.hltb.query(&query_options).await.unwrap();
 
-    (
-        [
-            (header::CONTENT_TYPE, "application/json"),
-        ],
-        search_results
-    )
+    ([(header::CONTENT_TYPE, "application/json")], search_results)
 }
 
-async fn get_search_handler(State(app_state): State<AppState>,
-                            Query(query_params): Query<SearchQueryParams>) -> impl IntoResponse {
+async fn get_search_handler(
+    State(app_state): State<AppState>,
+    Query(query_params): Query<SearchQueryParams>,
+) -> impl IntoResponse {
     let query_options = QueryOptions::new(&query_params.q, query_params.page.unwrap_or(1) as usize);
     let search_results = app_state.hltb.query(&query_options).await.unwrap();
-    (
-        [
-            (header::CONTENT_TYPE, "application/json"),
-        ],
-        search_results
-    )
+    ([(header::CONTENT_TYPE, "application/json")], search_results)
 }

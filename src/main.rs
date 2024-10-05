@@ -1,8 +1,8 @@
-use std::time::Duration;
+use crate::hltb::{HltbClient, HowLongToBeat};
 use axum::extract::{Query, State};
 use axum::http::Method;
-use axum::Router;
 use axum::routing::put;
+use axum::Router;
 use axum_otel_metrics::HttpMetricsLayerBuilder;
 use clap::Parser;
 use dotenvy::dotenv;
@@ -10,16 +10,16 @@ use log::debug;
 use moka::future::Cache;
 use reqwest::StatusCode;
 use serde::Deserialize;
+use std::time::Duration;
 use tokio::net::TcpListener;
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer};
-use tracing::{info, Level};
 use tracing::level_filters::LevelFilter;
-use crate::hltb::{HltbClient, HowLongToBeat};
+use tracing::{info, Level};
 use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::{EnvFilter, Registry};
 use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::{EnvFilter, Registry};
 
 pub(crate) mod hltb;
 pub(crate) mod rest;
@@ -61,8 +61,10 @@ struct ReplaceKeyQueryArgs {
     key: String,
 }
 
-async fn replace_key_handler(State(state): State<AppState>,
-                             Query(args): Query<ReplaceKeyQueryArgs>) -> StatusCode {
+async fn replace_key_handler(
+    State(state): State<AppState>,
+    Query(args): Query<ReplaceKeyQueryArgs>,
+) -> StatusCode {
     state.hltb.replace_search_key(&args.key).await;
     StatusCode::NO_CONTENT
 }
@@ -77,26 +79,30 @@ async fn main() -> color_eyre::Result<()> {
     let (async_console, _console_guard) = tracing_appender::non_blocking(std::io::stdout());
 
     let console = if args.human_readable_log {
-        Some(tracing_subscriber::fmt::layer()
-            .compact()
-            .with_writer(async_console.clone())
-            .with_thread_names(true)
-            .with_thread_ids(true))
+        Some(
+            tracing_subscriber::fmt::layer()
+                .compact()
+                .with_writer(async_console.clone())
+                .with_thread_names(true)
+                .with_thread_ids(true),
+        )
     } else {
         None
     };
 
     let console_logfmt = if !args.human_readable_log {
-        Some(tracing_logfmt::builder()
-            .with_timestamp(true)
-            .with_level(true)
-            .with_target(true)
-            .with_location(false)
-            .with_module_path(false)
-            .with_span_name(true)
-            .with_span_path(false)
-            .layer()
-            .with_writer(async_console))
+        Some(
+            tracing_logfmt::builder()
+                .with_timestamp(true)
+                .with_level(true)
+                .with_target(true)
+                .with_location(false)
+                .with_module_path(false)
+                .with_span_name(true)
+                .with_span_path(false)
+                .layer()
+                .with_writer(async_console),
+        )
     } else {
         None
     };
@@ -127,13 +133,9 @@ async fn main() -> color_eyre::Result<()> {
 
     let hltb = HowLongToBeat::new(HltbClient::default(), cache);
 
-    let app_state = AppState {
-        hltb,
-    };
+    let app_state = AppState { hltb };
 
-    let router = Router::new()
-        .merge(rest::routes())
-        .merge(metrics.routes());
+    let router = Router::new().merge(rest::routes()).merge(metrics.routes());
 
     // this is mostly for test purposes
     // should not be on release
@@ -147,17 +149,17 @@ async fn main() -> color_eyre::Result<()> {
                 .gzip(true)
                 .br(true)
                 .deflate(true)
-                .zstd(true)
+                .zstd(true),
         )
         .layer(
             TraceLayer::new_for_http()
                 .on_request(DefaultOnRequest::new().level(Level::INFO))
-                .on_response(DefaultOnResponse::new().level(Level::INFO))
+                .on_response(DefaultOnResponse::new().level(Level::INFO)),
         )
         .layer(
             CorsLayer::new()
                 .allow_methods([Method::GET, Method::POST])
-                .allow_origin(Any)
+                .allow_origin(Any),
         )
         .with_state(app_state);
 

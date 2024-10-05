@@ -16,9 +16,15 @@ impl QueryOptions {
     /// Basic search game by title using the default parameters
     /// like in the site when you query a game
     pub(crate) fn new(game_title: &str, page: usize) -> Self {
+        let search_terms = game_title
+            .trim()
+            .split(" ")
+            .map(|s| s.to_string())
+            .collect();
+
         Self {
             search_type: String::from("games"),
-            search_terms: game_title.trim().split(" ").map(|s| s.to_string()).collect(),
+            search_terms,
             search_page: page as u32,
             size: 20,
             use_cache: true,
@@ -42,7 +48,6 @@ pub(crate) struct SearchOptions {
     sort: u32,
     randomizer: u32,
 }
-
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -108,7 +113,6 @@ pub(crate) struct RangeTime {
     max: Option<String>,
 }
 
-
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[derive(Default)]
@@ -117,7 +121,6 @@ pub(crate) struct Gameplay {
     flow: String,
     genre: String,
 }
-
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

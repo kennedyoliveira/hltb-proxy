@@ -1,13 +1,13 @@
-use std::fmt::{Display, Formatter};
-use std::sync::LazyLock;
+use crate::hltb::models::QueryOptions;
+use crate::hltb::Error;
 use color_eyre::eyre::bail;
 use log::{error, warn};
 use prometheus::{register_histogram, Histogram};
-use scraper::{Html, Selector};
-use tracing::{debug, info, instrument, trace};
 use regex::Regex;
-use crate::hltb::Error;
-use crate::hltb::models::QueryOptions;
+use scraper::{Html, Selector};
+use std::fmt::{Display, Formatter};
+use std::sync::LazyLock;
+use tracing::{debug, info, instrument, trace};
 
 pub(crate) const BASE_URL: &str = "https://howlongtobeat.com";
 pub(crate) const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36";
@@ -47,14 +47,25 @@ impl Display for ScriptTag {
 
 impl ScriptTag {
     fn new(src: Option<String>, id: Option<String>, type_: Option<String>, async_: bool) -> Self {
-        let file_name = src.as_deref().and_then(|s| s.split("/").last().map(|s| s.to_owned()));
-        Self { src, file_name, id, type_, async_ }
+        let file_name = src
+            .as_deref()
+            .and_then(|s| s.split("/").last().map(|s| s.to_owned()));
+        Self {
+            src,
+            file_name,
+            id,
+            type_,
+            async_,
+        }
     }
 
     /// Check if the script tag source url is relative to the site
     /// i.e. it starts with a `/`
     fn is_src_relative(&self) -> bool {
-        self.src.as_deref().map(|s| s.starts_with("/")).unwrap_or_default()
+        self.src
+            .as_deref()
+            .map(|s| s.starts_with("/"))
+            .unwrap_or_default()
     }
 
     fn get_file_name(&self) -> Option<&str> {
@@ -64,14 +75,16 @@ impl ScriptTag {
 
 static SEARCH_API_KEY_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     debug!("Initializing search key regex");
-    Regex::new(r#""/api/search/"\.concat\("([^"]+)"\)"#)
-        .expect("Regex should be valid")
+    Regex::new(r#""/api/search/"\.concat\("([^"]+)"\)"#).expect("Regex should be valid")
 });
 
 static SEARCH_KEY_HISTOGRAM: LazyLock<Histogram> = LazyLock::new(|| {
     debug!("Registering search key histogram");
-    register_histogram!("hltb_search_key_fetch_duration", "Duration to fetch search key")
-        .expect("Histogram should be registered")
+    register_histogram!(
+        "hltb_search_key_fetch_duration",
+        "Duration to fetch search key"
+    )
+    .expect("Histogram should be registered")
 });
 
 #[derive(Debug, Clone)]
@@ -86,17 +99,32 @@ impl HltbClient {
     }
 
     #[instrument(skip(self, search_key, query_options))]
-    pub(crate) async fn query(&self, search_key: &str, query_options: &QueryOptions) -> Result<String, Error> {
-        debug!(?search_key, "Querying HLTB API with options: {:?}", query_options);
+    pub(crate) async fn query(
+        &self,
+        search_key: &str,
+        query_options: &QueryOptions,
+    ) -> Result<String, Error> {
+        debug!(
+            ?search_key,
+            "Querying HLTB API with options: {:?}", query_options
+        );
 
         let title = query_options.get_title();
         let referer = format!("{}/?q={}", BASE_URL, urlencoding::encode(&title));
         let url = format!("{}/api/search/{}", BASE_URL, search_key);
         let body = serde_json::to_string(query_options)?;
 
-        debug!(?url, ?referer, "Sending POST request to HLTB API at {}: {}", url, body);
+        debug!(
+            ?url,
+            ?referer,
+            "Sending POST request to HLTB API at {}: {}",
+            url,
+            body
+        );
 
-        let resp = self.http_client.post(url)
+        let resp = self
+            .http_client
+            .post(url)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header("Referer", referer)
@@ -124,12 +152,15 @@ impl HltbClient {
         let _timer = SEARCH_KEY_HISTOGRAM.start_timer();
 
         info!("Finding search key");
-        let index_page = self.http_client.get(BASE_URL)
+        let index_page = self
+            .http_client
+            .get(BASE_URL)
             .header("User-Agent", USER_AGENT)
             .send()
             .await?
             .error_for_status()?
-            .text().await?;
+            .text()
+            .await?;
 
         trace!("Loaded index page: {}", index_page);
 
@@ -144,7 +175,10 @@ impl HltbClient {
         debug!("Found {} scripts: {:?}", scripts.len(), scripts);
         info!("Searching for search key in scripts");
         if let Some(idx) = scripts.iter().position(Self::is_app_script) {
-            info!("Found the script with name starting with '_app' at index {}", idx);
+            info!(
+                "Found the script with name starting with '_app' at index {}",
+                idx
+            );
             let script = scripts.remove(idx);
 
             match self.search_key(&script).await {
@@ -211,7 +245,7 @@ impl HltbClient {
     fn is_app_script(script: &ScriptTag) -> bool {
         match script.get_file_name() {
             Some(file_name) => file_name.to_lowercase().contains("_app"),
-            None => false
+            None => false,
         }
     }
 
@@ -228,24 +262,30 @@ impl HltbClient {
         };
 
         info!("Fetching script content from {}", script_url);
-        let script_content = self.http_client.get(script_url)
+        let script_content = self
+            .http_client
+            .get(script_url)
             .header("User-Agent", USER_AGENT)
             .send()
             .await?
             .error_for_status()?
-            .text().await?;
+            .text()
+            .await?;
 
         Ok(Self::find_search_key_in_script(&script_content).map(|s| s.to_owned()))
     }
 
     fn find_search_key_in_script(script_content: &str) -> Option<&str> {
-        SEARCH_API_KEY_REGEX.captures(script_content).and_then(|cap| cap.get(1).map(|m| m.as_str()))
+        SEARCH_API_KEY_REGEX
+            .captures(script_content)
+            .and_then(|cap| cap.get(1).map(|m| m.as_str()))
     }
 
     fn find_scripts(html: &str) -> Vec<ScriptTag> {
         let doc = Html::parse_document(html);
 
-        let javascript_selectors = Selector::parse("script").expect("static selector should not fail");
+        let javascript_selectors =
+            Selector::parse("script").expect("static selector should not fail");
         doc.select(&javascript_selectors)
             .map(|script| {
                 let src = script.value().attr("src").map(|s| s.to_owned());
@@ -285,7 +325,10 @@ mod tests {
 
         info!("Testing if the search key is correct");
 
-        let resp = client.query(&search_key.unwrap(), &QueryOptions::new("final fantasy", 1)).await.unwrap();
+        let resp = client
+            .query(&search_key.unwrap(), &QueryOptions::new("final fantasy", 1))
+            .await
+            .unwrap();
         println!("{}", resp);
         // sometimes it simply replies as {}, so needs to be bigger than 2
         assert!(resp.len() > 2);
