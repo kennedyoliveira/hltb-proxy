@@ -1,13 +1,13 @@
 # See https://fly.io/docs/app-guides/continuous-deployment-with-github-actions/
 
-name: Fly Deploy
+name: Fly.io Deployment
 on:
   registry_package:
     types: [ published ]
 
 jobs:
   deploy:
-    name: Deploy app
+    name: Deploy app to fly.io
     runs-on: ubuntu-latest
     concurrency: deploy-group    # optional: ensure only one action runs at a time
     steps:
@@ -21,18 +21,15 @@ jobs:
           # check if tag matches semantic versioning major.minor.patch
           regex: '^\d+\.\d+\.\d+$'
 
-      - name: Debug log
-        run: "echo Tag: ${{ toJSON(github.event.registry_package) }}"
-
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
       # github.event.registry_package.package_version
       # https://docs.github.com/en/webhooks/webhook-events-and-payloads?actionType=published#registry_package
       # detailed information about the event
       # trigger deploy using the tag with specific semver
-      - name: Deploy app with version ${{ github.event.registry_package.package_version.container_metadata.tag.name }}
+      - name: Deploying version ${{ github.event.registry_package.package_version.container_metadata.tag.name }}
         run: |
-          flyctl deploy --image ghcr.io/kennedyoliveira/hltb-proxy:${{ github.event.registry_package.package_version.container_metadata.tag.name }} --local-only
+          flyctl deploy --image ${{ github.event.registry_package.package_version.package_url }} --local-only
         if: ${{ steps.semver-tag-match.outputs.match != '' }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
