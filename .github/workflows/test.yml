@@ -26,8 +26,5 @@ jobs:
       - name: Install pre-requisites
         run: just install-prereqs
 
-      - name: Build
-        run: cargo build --verbose
-
       - name: Tests
         run: just test
