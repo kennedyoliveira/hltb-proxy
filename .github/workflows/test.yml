@@ -1,0 +1,30 @@
+name: Test
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-linters:
+    name: Run linters
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: cargo, rustc
+          toolchain: stable
+
+      - name: Install just
+        run: apt update && apt --assume-yes install just
+
+      - name: Build
+        run: cargo build --verbose
+
+      - name: Tests
+        run: just test
