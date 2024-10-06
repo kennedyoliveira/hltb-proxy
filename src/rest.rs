@@ -18,7 +18,8 @@ pub(crate) fn routes() -> Router<AppState> {
     let router = Router::new()
         .route("/v1/search", post(post_search_handler))
         .route("/v1/search", get(get_search_handler))
-        .route("/v1/search_key", get(get_key_handler));
+        .route("/v1/search_key", get(get_key_handler))
+        .route("/health", get(health_handler));
 
     // this is mostly for test purposes
     // should not be on release
@@ -62,4 +63,8 @@ async fn replace_key_handler(
 ) -> StatusCode {
     state.hltb.replace_search_key(&args.key).await;
     StatusCode::NO_CONTENT
+}
+
+async fn health_handler() -> StatusCode {
+    StatusCode::OK
 }
