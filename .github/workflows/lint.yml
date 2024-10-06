@@ -26,7 +26,9 @@ jobs:
           toolchain: stable
 
       - name: Run linters
-        uses: wearerequired/lint-action@v2
+        # using this commit because otherwise rust linters fail
+        # should be fixed after releasing a new version after v2.3.0
+        uses: wearerequired/lint-action@df31ae8635c46366688e0bea44d7aba2e1468813
         with:
           auto_fix: true
           rustfmt: true
