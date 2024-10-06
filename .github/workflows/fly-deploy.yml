@@ -2,9 +2,8 @@
 
 name: Fly Deploy
 on:
-  pull_request:
-    branches:
-      - master
+  registry_package:
+    types: [ published ]
 
 jobs:
   deploy:
@@ -13,7 +12,27 @@ jobs:
     concurrency: deploy-group    # optional: ensure only one action runs at a time
     steps:
       - uses: actions/checkout@v4
+
+      # https://github.com/actions-ecosystem/action-regex-match
+      - uses: actions-ecosystem/action-regex-match@v2
+        id: semver-tag-match
+        with:
+          text: ${{ github.event.registry_package.package_version.container_metadata.tag.name }}
+          # check if tag matches semantic versioning major.minor.patch
+          regex: '^\d+\.\d+\.\d+$'
+
+      - name: Debug log
+        run: "echo Tag: ${{ github.event.registry_package }}"
+
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --image "ghcr.io/kennedyoliveira/hltb-proxy:0.1.0" --local-only
+
+      # github.event.registry_package.package_version
+      # https://docs.github.com/en/webhooks/webhook-events-and-payloads?actionType=published#registry_package
+      # detailed information about the event
+      # trigger deploy using the tag with specific semver
+      - name: Deploy app with version ${{ github.event.registry_package.package_version.container_metadata.tag.name }}
+        run: |
+          flyctl deploy --image ghcr.io/kennedyoliveira/hltb-proxy:${{ github.event.registry_package.package_version.container_metadata.tag.name }} --local-only
+        if: ${{ steps.semver-tag-match.outputs.match != '' }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
