@@ -22,7 +22,7 @@ jobs:
           regex: '^\d+\.\d+\.\d+$'
 
       - name: Debug log
-        run: "echo Tag: ${{ github.event.registry_package }}"
+        run: "echo Tag: ${{ toJSON(github.event.registry_package) }}"
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
