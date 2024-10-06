@@ -21,7 +21,7 @@ jobs:
           toolchain: stable
 
       - name: Install just
-        run: apt update && apt --assume-yes install just
+        run: sudo apt-get update && sudo apt-get --assume-yes install just
 
       - name: Build
         run: cargo build --verbose
