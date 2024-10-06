@@ -40,7 +40,9 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          # PAT_GITHUB is a GitHub Personal Access Token with read:packages and write:packages scopes
+          # it's required to use this to be able to trigger the registry_package event, using the GITHUB_TOKEN won't work
+          password: ${{ secrets.PAT_GITHUB }}
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action

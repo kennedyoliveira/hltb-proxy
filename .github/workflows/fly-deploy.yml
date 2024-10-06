@@ -3,7 +3,9 @@
 name: Fly.io Deployment
 on:
   registry_package:
-    types: [ published ]
+    types:
+      - published
+      - updated
 
 jobs:
   deploy:
