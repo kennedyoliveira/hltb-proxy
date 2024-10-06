@@ -4,7 +4,7 @@ set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
 [doc('Install utilities that are required for running the project tasks')]
 install-prereqs:
-    cargo install nextest --locked
+    cargo install cargo-nextest --locked
 
 [doc('Build a release version of the app')]
 release:
