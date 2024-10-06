@@ -25,3 +25,11 @@ primary_region = 'gru'
 [[metrics]]
   port = 8080
   path = '/metrics'
+
+[[http_service.checks]]
+  interval = 15000
+  grace_period = "10s"
+  method = "GET"
+  protocol = "http"
+  path = "/health"
+  timeout = "2s"
