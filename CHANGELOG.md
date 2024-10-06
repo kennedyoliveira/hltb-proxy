@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2024-10-06
+
+### 🚀 Features
+
+- Add health endpoint and health checks to fly.io (#5)
+
+### ⚙️ Miscellaneous Tasks
+
+- Fix build issues for arm64
+
+### Build
+
+- Add linter on PRs
+- Run tests on PR
+- Deploy to fly.io (#4)
+- Add debug information for fly.io deployment
+- Remove debug log from fly.io, improve fly.io deployment
+
 ## [0.1.0] - 2024-10-05
 
 ### 🚀 Features
@@ -22,6 +40,7 @@ All notable changes to this project will be documented in this file.
 
 - *(proxy)* Format the code
 - *(requests)* Add environment
+- Release version v0.1.0
 
 ### Build
 
