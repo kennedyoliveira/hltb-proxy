@@ -20,6 +20,7 @@ use tracing_subscriber::{EnvFilter, Registry};
 
 pub(crate) mod hltb;
 pub(crate) mod rest;
+pub(crate) mod http;
 
 #[derive(Parser, Debug)]
 struct CacheArgs {

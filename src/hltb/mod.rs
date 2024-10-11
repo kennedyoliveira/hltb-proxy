@@ -103,7 +103,7 @@ impl HowLongToBeat {
                     body: _,
                 } if status_code == &StatusCode::NOT_FOUND => {
                     if depth >= 2 {
-                        bail!("Failed to call HLTB API status = NOT_FOUND, exausted retries")
+                        bail!("Failed to call HLTB API status = NOT_FOUND, exhausted retries")
                     }
 
                     warn!("Failed to call HLTB API status = NOT_FOUND, invalidating search key");
