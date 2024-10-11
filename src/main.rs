@@ -19,8 +19,8 @@ use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{EnvFilter, Registry};
 
 pub(crate) mod hltb;
-pub(crate) mod rest;
 pub(crate) mod http;
+pub(crate) mod rest;
 
 #[derive(Parser, Debug)]
 struct CacheArgs {
