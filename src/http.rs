@@ -4,7 +4,7 @@ use axum::Json;
 use reqwest::StatusCode;
 use serde_json::json;
 
-const APPLICATION_JSON_MEDIA_TYPE: &'static str = "application/json";
+const APPLICATION_JSON_MEDIA_TYPE: &str = "application/json";
 
 /// Content of proxied response from HowLongToBeat
 #[derive(Debug, Clone)]
