@@ -5,7 +5,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: hltb-proxy
+      app.kubernetes.io/name: hltb-proxy
   endpoints:
     # Port exposing metrics (this should match the service port name)
     - port: web

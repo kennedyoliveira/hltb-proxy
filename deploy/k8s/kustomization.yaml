@@ -8,8 +8,12 @@ resources:
   - prometheus-monitor.yaml
   - hpa.yaml
 
-commonLabels:
-  app: hltb-proxy
+labels:
+  - pairs:
+      app.kubernetes.io/name: hltb-proxy
+      app.kubernetes.io/instance: hltb-proxy
+    includeSelectors: true
+    includeTemplates: true
 
 images:
   - name: ghcr.io/kennedyoliveira/hltb-proxy
