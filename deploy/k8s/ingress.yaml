@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hltb-proxy-ingress
+spec:
+  rules:
+    - host: hltb-proxy.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: hltb-proxy
+                port:
+                  number: 8080

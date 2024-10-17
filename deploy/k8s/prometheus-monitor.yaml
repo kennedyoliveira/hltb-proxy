@@ -1,0 +1,13 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: hltb-proxy-service-monitor
+spec:
+  selector:
+    matchLabels:
+      app: hltb-proxy
+  endpoints:
+    # Port exposing metrics (this should match the service port name)
+    - port: web
+      interval: 30s
+      path: /metrics
