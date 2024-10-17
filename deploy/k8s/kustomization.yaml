@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - prometheus-monitor.yaml
+  - hpa.yaml
+
+commonLabels:
+  app: hltb-proxy
+
+images:
+  - name: ghcr.io/kennedyoliveira/hltb-proxy
+    newTag: 0.2.0
+
+namespace: hltb-proxy

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hltb-proxy
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: hltb-proxy
+          image: ghcr.io/kennedyoliveira/hltb-proxy:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--port=8080"
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+              name: web
+          livenessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            httpGet:
+              path: /health
+              port: 8080
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            httpGet:
+              path: /health
+              port: 8080
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+      restartPolicy: Always
