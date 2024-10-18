@@ -6,8 +6,6 @@ use bytes::Bytes;
 use reqwest::StatusCode;
 use serde_json::json;
 
-const APPLICATION_JSON_MEDIA_TYPE: &str = "application/json";
-
 pub(crate) enum CachedResponse<T>
 where
     T: IntoResponse,
