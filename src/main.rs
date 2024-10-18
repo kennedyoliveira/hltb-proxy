@@ -12,7 +12,7 @@ use std::time::Duration;
 use tokio::net::TcpListener;
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::{Any, CorsLayer};
-use tower_http::trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer};
+use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer};
 use tracing::level_filters::LevelFilter;
 use tracing::{info, Level};
 use tracing_subscriber::layer::SubscriberExt;
@@ -139,6 +139,7 @@ async fn main() -> color_eyre::Result<()> {
         )
         .layer(
             TraceLayer::new_for_http()
+                .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
                 .on_request(DefaultOnRequest::new().level(Level::INFO))
                 .on_response(DefaultOnResponse::new().level(Level::INFO)),
         )
