@@ -1,6 +1,7 @@
 use axum::http::header;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
+use bytes::Bytes;
 use reqwest::StatusCode;
 use serde_json::json;
 
@@ -9,7 +10,8 @@ const APPLICATION_JSON_MEDIA_TYPE: &str = "application/json";
 /// Content of proxied response from HowLongToBeat
 #[derive(Debug, Clone)]
 pub(crate) struct HtlbProxiedResponse {
-    pub content: String,
+    /// Content of the response from HLTB
+    pub content: Bytes,
 }
 
 impl IntoResponse for HtlbProxiedResponse {

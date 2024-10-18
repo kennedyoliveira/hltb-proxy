@@ -57,8 +57,8 @@ run *args:
 
 [group('docker')]
 [doc('Build a docker image')]
-docker-build:
-    docker build -t kennedyoliveira/hltb-proxy .
+docker-build tag="latest":
+    docker build -t kennedyoliveira/hltb-proxy:{{tag}} .
 
 [group('docker')]
 [doc('Create a docker buildx instance, only required to run once if one not available')]

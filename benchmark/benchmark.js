@@ -3,10 +3,17 @@ import {check} from 'k6';
 import {SharedArray} from "k6/data";
 import {sampleGameList} from "./gameList.js";
 
-const BASE_URL = 'https://proxy-hltb.fly.dev';
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 
 export const options = {
     scenarios: {
+        // warm up the caches
+        warmup: {
+            executor: 'constant-vus',
+            vus: 5,
+            duration: '1m',
+        },
+        // do the actual benchmark
         benchmark: {
             executor: 'ramping-vus',
             stages: [
@@ -14,6 +21,8 @@ export const options = {
             ],
             startVUs: 0,
             gracefulRampDown: '10s',
+            // wait a bit before starting the benchmark
+            startTime: '75s',
         }
     }
 };

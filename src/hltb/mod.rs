@@ -7,6 +7,7 @@ pub(crate) use models::*;
 use async_recursion::async_recursion;
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
+use bytes::Bytes;
 use color_eyre::eyre::bail;
 use log::{info, warn};
 use moka::future::Cache;
@@ -40,13 +41,13 @@ pub(crate) enum Error {
 #[derive(Debug, Clone)]
 pub(crate) struct HowLongToBeat {
     hltb_client: HltbClient,
-    cache: Cache<String, String>,
+    cache: Cache<String, Bytes>,
 }
 
 const SEARCH_KEY_CACHE_KEY: &str = "search_key";
 
 impl HowLongToBeat {
-    pub(crate) fn new(hltb_client: HltbClient, cache: Cache<String, String>) -> Self {
+    pub(crate) fn new(hltb_client: HltbClient, cache: Cache<String, Bytes>) -> Self {
         Self { hltb_client, cache }
     }
 
@@ -56,13 +57,13 @@ impl HowLongToBeat {
             .entry_by_ref(SEARCH_KEY_CACHE_KEY)
             .and_upsert_with(|value| async move {
                 debug!("Replacing search key {:?} with {:?}", value, new_key);
-                new_key.to_string()
+                Bytes::from(new_key.to_string())
             })
             .await;
     }
 
     #[instrument(skip_all)]
-    pub(crate) async fn query(&self, query_options: &QueryOptions) -> color_eyre::Result<String> {
+    pub(crate) async fn query(&self, query_options: &QueryOptions) -> color_eyre::Result<Bytes> {
         self.query_with_depth(query_options, 0).await
     }
 
@@ -72,7 +73,7 @@ impl HowLongToBeat {
         &self,
         query_options: &QueryOptions,
         depth: usize,
-    ) -> color_eyre::Result<String> {
+    ) -> color_eyre::Result<Bytes> {
         let search_key = self.get_search_key().await?;
 
         let cache_key = format!(
@@ -129,6 +130,7 @@ impl HowLongToBeat {
                         error!("Failed to find search key: {:?}", e);
                         None
                     })
+                    .map(Bytes::from)
             })
             .await;
 
@@ -136,7 +138,7 @@ impl HowLongToBeat {
             bail!("Failed to find search key");
         };
 
-        Ok(search_key)
+        Ok(String::from_utf8_lossy(&search_key[..]).into())
     }
 
     fn create_cache_key(object: &str) -> color_eyre::Result<String> {

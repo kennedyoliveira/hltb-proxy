@@ -2,6 +2,7 @@ use crate::hltb::{HltbClient, HowLongToBeat};
 use axum::http::Method;
 use axum::Router;
 use axum_otel_metrics::HttpMetricsLayerBuilder;
+use bytes::Bytes;
 use clap::Parser;
 use dotenvy::dotenv;
 use log::debug;
@@ -116,7 +117,7 @@ async fn main() -> color_eyre::Result<()> {
         .with_registry(prometheus::default_registry().to_owned())
         .build();
 
-    let cache: Cache<String, String> = Cache::builder()
+    let cache: Cache<String, Bytes> = Cache::builder()
         .max_capacity(args.cache.cache_max_size)
         .time_to_live(Duration::from_secs(args.cache.cache_ttl)) // 1 hour
         .build();
