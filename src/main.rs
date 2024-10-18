@@ -5,7 +5,6 @@ use axum_otel_metrics::HttpMetricsLayerBuilder;
 use bytes::Bytes;
 use clap::Parser;
 use dotenvy::dotenv;
-use log::debug;
 use moka::future::Cache;
 use serde::Deserialize;
 use std::time::Duration;
@@ -14,7 +13,7 @@ use tower_http::compression::CompressionLayer;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer};
 use tracing::level_filters::LevelFilter;
-use tracing::{info, Level};
+use tracing::{debug, info, Level};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{EnvFilter, Registry};
@@ -48,6 +47,9 @@ struct Args {
     human_readable_log: bool,
     #[command(flatten)]
     cache: CacheArgs,
+    /// Enable compression for responses, should be disabled if a reverse proxy is used
+    #[arg(long, default_value = "false", env = "HLTB_PROXY_ENABLE_COMPRESSION")]
+    enable_compression: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -126,17 +128,21 @@ async fn main() -> color_eyre::Result<()> {
 
     let app_state = AppState { hltb };
 
-    let router = Router::new().merge(rest::routes()).merge(metrics.routes());
+    let mut router = Router::new().merge(rest::routes()).merge(metrics.routes());
 
-    let app = router
-        .layer(metrics)
-        .layer(
+    if args.enable_compression {
+        debug!("Enabling response compression");
+        router = router.layer(
             CompressionLayer::new()
                 .gzip(true)
                 .br(true)
                 .deflate(true)
                 .zstd(true),
-        )
+        );
+    }
+
+    let app = router
+        .layer(metrics)
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
