@@ -1,13 +1,18 @@
 use crate::hltb::QueryOptions;
-use crate::http::{AppError, HtlbProxiedResponse};
+use crate::http::{AppError, CachedResponse, HltbProxiedResponse};
 use crate::{AppState, ReplaceKeyQueryArgs};
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{get, post, put};
 use axum::{Json, Router};
-use log::warn;
+use axum_extra::headers::{ETag, IfNoneMatch};
+use axum_extra::TypedHeader;
+use blake2::digest::{Update, VariableOutput};
+use blake2::Blake2bVar;
 use serde::Deserialize;
+use std::str::FromStr;
+use tracing::warn;
 
 #[derive(Debug, Clone, Deserialize)]
 struct SearchQueryParams {
@@ -32,24 +37,39 @@ pub(crate) fn routes() -> Router<AppState> {
 
 async fn post_search_handler(
     State(app_state): State<AppState>,
+    TypedHeader(if_none_match): TypedHeader<IfNoneMatch>,
     Json(query_options): Json<QueryOptions>,
-) -> Result<HtlbProxiedResponse, AppError> {
+) -> Result<CachedResponse<HltbProxiedResponse>, AppError> {
     let search_results = app_state.hltb.query(&query_options).await?;
+    let etag = create_etag(&search_results)?;
 
-    Ok(HtlbProxiedResponse {
-        content: search_results,
-    })
+    if if_none_match.precondition_passes(&etag) {
+        Ok(CachedResponse::Fresh(HltbProxiedResponse {
+            content: search_results,
+            etag,
+        }))
+    } else {
+        Ok(CachedResponse::NotModified)
+    }
 }
 
 async fn get_search_handler(
     State(app_state): State<AppState>,
+    TypedHeader(if_none_match): TypedHeader<IfNoneMatch>,
     Query(query_params): Query<SearchQueryParams>,
-) -> Result<HtlbProxiedResponse, AppError> {
+) -> Result<CachedResponse<HltbProxiedResponse>, AppError> {
     let query_options = QueryOptions::new(&query_params.q, query_params.page.unwrap_or(1) as usize);
     let search_results = app_state.hltb.query(&query_options).await?;
-    Ok(HtlbProxiedResponse {
-        content: search_results,
-    })
+    let etag = create_etag(&search_results)?;
+
+    if if_none_match.precondition_passes(&etag) {
+        Ok(CachedResponse::Fresh(HltbProxiedResponse {
+            content: search_results,
+            etag,
+        }))
+    } else {
+        Ok(CachedResponse::NotModified)
+    }
 }
 
 async fn get_key_handler(State(state): State<AppState>) -> impl IntoResponse {
@@ -72,4 +92,152 @@ async fn replace_key_handler(
 
 async fn health_handler() -> StatusCode {
     StatusCode::OK
+}
+
+fn create_etag(content: &[u8]) -> color_eyre::Result<ETag> {
+    let mut hasher = Blake2bVar::new(16).expect("16 is a valid output size");
+
+    let mut buf = [0u8; 16];
+    hasher.update(content);
+    hasher.finalize_variable(&mut buf)?;
+
+    let etag = hex::encode(buf);
+    Ok(ETag::from_str(&format!("\"{}\"", etag))?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::hltb::HowLongToBeat;
+    use axum_extra::headers::Header;
+    use axum_test::TestServer;
+    use tracing::info;
+    use tracing_test::traced_test;
+
+    #[test]
+    fn test_create_etag() {
+        let content = b"test";
+        let etag = create_etag(content).expect("etag should be created correctly");
+
+        assert_eq!(
+            etag,
+            ETag::from_str("\"44a8995dd50b6657a037a7839304535b\"").unwrap()
+        );
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn test_query_without_etag() -> color_eyre::Result<()> {
+        let router = Router::new().merge(routes()).with_state(AppState {
+            hltb: HowLongToBeat::default(),
+        });
+
+        let server = TestServer::builder()
+            .http_transport()
+            .build(router)
+            .expect("test server should initialize correctly");
+
+        let resp = server
+            .reqwest_get("/v1/search?q=chrono%20trigger")
+            .send()
+            .await?;
+
+        let status_code = resp.status();
+        let headers = resp.headers().to_owned();
+        let body = resp.text().await?;
+
+        println!("Body: {}", body);
+
+        assert_eq!(status_code, StatusCode::OK);
+        assert_ne!(headers.get("etag"), None);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn test_get_query_with_etag() -> color_eyre::Result<()> {
+        let router = Router::new().merge(routes()).with_state(AppState {
+            hltb: HowLongToBeat::default(),
+        });
+
+        let server = TestServer::builder()
+            .http_transport()
+            .build(router)
+            .expect("test server should initialize correctly");
+
+        info!("Sending first request to get ETag");
+        let first_resp = server
+            .reqwest_get("/v1/search?q=chrono%20trigger")
+            .send()
+            .await?;
+
+        let status_code = first_resp.status();
+        let headers = first_resp.headers().to_owned();
+        let body = first_resp.text().await?;
+
+        println!("Body: {}", body);
+
+        assert_eq!(status_code, StatusCode::OK);
+
+        let etag = headers.get(ETag::name()).expect("ETag should be present");
+
+        info!("Sending second request with ETag, should be Not Modified");
+        let second_resp = server
+            .reqwest_get("/v1/search?q=chrono%20trigger")
+            .header("If-None-Match", etag)
+            .send()
+            .await?;
+
+        let status_code = second_resp.status();
+        assert_eq!(status_code, StatusCode::NOT_MODIFIED);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn test_post_query_with_etag() -> color_eyre::Result<()> {
+        let router = Router::new().merge(routes()).with_state(AppState {
+            hltb: HowLongToBeat::default(),
+        });
+
+        let server = TestServer::builder()
+            .http_transport()
+            .build(router)
+            .expect("test server should initialize correctly");
+
+        info!("Sending first request to get ETag");
+        let query_options = QueryOptions::new("chrono trigger", 1);
+        let first_resp = server
+            .reqwest_post("/v1/search")
+            .header("Content-Type", "application/json")
+            .body(serde_json::to_string(&query_options)?)
+            .send()
+            .await?;
+
+        let status_code = first_resp.status();
+        let headers = first_resp.headers().to_owned();
+        let body = first_resp.text().await?;
+
+        println!("Body: {}", body);
+
+        assert_eq!(status_code, StatusCode::OK);
+
+        let etag = headers.get(ETag::name()).expect("ETag should be present");
+
+        info!("Sending second request with ETag, should be Not Modified");
+        let second_resp = server
+            .reqwest_post("/v1/search")
+            .body(serde_json::to_string(&query_options)?)
+            .header("If-None-Match", etag)
+            .header("Content-Type", "application/json")
+            .send()
+            .await?;
+
+        let status_code = second_resp.status();
+        assert_eq!(status_code, StatusCode::NOT_MODIFIED);
+
+        Ok(())
+    }
 }

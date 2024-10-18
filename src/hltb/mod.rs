@@ -14,6 +14,7 @@ use moka::future::Cache;
 use prometheus::{register_counter_vec, CounterVec};
 use reqwest::StatusCode;
 use std::sync::LazyLock;
+use std::time::Duration;
 use thiserror::Error;
 use tracing::{debug, error, instrument};
 
@@ -42,6 +43,18 @@ pub(crate) enum Error {
 pub(crate) struct HowLongToBeat {
     hltb_client: HltbClient,
     cache: Cache<String, Bytes>,
+}
+
+impl Default for HowLongToBeat {
+    fn default() -> Self {
+        let hltb_client = HltbClient::default();
+        let cache: Cache<String, Bytes> = Cache::builder()
+            .max_capacity(10000)
+            .time_to_live(Duration::from_secs(60 * 60)) // 1 hour
+            .build();
+
+        Self { hltb_client, cache }
+    }
 }
 
 const SEARCH_KEY_CACHE_KEY: &str = "search_key";

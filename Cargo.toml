@@ -29,6 +29,7 @@ async-recursion = "1.1"
 
 # http
 axum = { version = "0.7", features = ["macros"] }
+axum-extra = { version = "0.9", features = ["typed-header"] }
 reqwest = { version = "0.12", features = ["gzip"] }
 tower-http = { version = "0.6", features = ["compression-full", "trace", "cors"] }
 
@@ -47,6 +48,7 @@ axum-otel-metrics = { git = "https://github.com/kennedyoliveira/axum-otel-metric
 
 [dev-dependencies]
 tracing-test = "0.2"
+axum-test = { version = "16.2", features = ["reqwest"] }
 
 # The profile that 'cargo dist' will build with
 [profile.dist]
