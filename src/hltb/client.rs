@@ -1,5 +1,6 @@
 use crate::hltb::models::QueryOptions;
 use crate::hltb::Error;
+use bytes::Bytes;
 use color_eyre::eyre::bail;
 use log::{error, warn};
 use prometheus::{register_histogram, Histogram};
@@ -73,6 +74,8 @@ impl ScriptTag {
     }
 }
 
+/// Regex for extracting the api key in js script,
+/// currently has the format `"/api/search/somekey"`
 static SEARCH_API_KEY_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     debug!("Initializing search key regex");
     Regex::new(r#""/api/search/"\.concat\("([^"]+)"\)"#).expect("Regex should be valid")
@@ -98,12 +101,15 @@ impl HltbClient {
         Self { http_client }
     }
 
+    /// Query the HLTB API.
+    /// - `search_key`: The search key to use to query the API, see [`Self::find_search_key`] to get it.
+    /// - `query_options`: The options to use to query the API.
     #[instrument(skip(self, search_key, query_options))]
     pub(crate) async fn query(
         &self,
         search_key: &str,
         query_options: &QueryOptions,
-    ) -> Result<String, Error> {
+    ) -> Result<Bytes, Error> {
         debug!(
             ?search_key,
             "Querying HLTB API with options: {:?}", query_options
@@ -135,18 +141,20 @@ impl HltbClient {
 
         let status_code = resp.status();
         let is_error = !status_code.is_success();
-        let resp_body = resp.text().await?;
 
         if is_error {
             return Err(Error::Api {
                 status_code,
-                body: resp_body,
+                body: resp.text().await?,
             });
         }
 
-        Ok(resp_body)
+        Ok(resp.bytes().await?)
     }
 
+    /// HLTB uses a search key to make scrapping the API a bit more difficult,
+    /// the key is also changed from time to time, this function will try to find
+    /// the search key in the scripts of the page.
     #[instrument(skip(self))]
     pub(crate) async fn find_search_key(&self) -> Result<Option<String>, Error> {
         let _timer = SEARCH_KEY_HISTOGRAM.start_timer();
@@ -329,7 +337,7 @@ mod tests {
             .query(&search_key.unwrap(), &QueryOptions::new("final fantasy", 1))
             .await
             .unwrap();
-        println!("{}", resp);
+        println!("{}", String::from_utf8_lossy(&resp));
         // sometimes it simply replies as {}, so needs to be bigger than 2
         assert!(resp.len() > 2);
     }

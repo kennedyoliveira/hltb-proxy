@@ -856,6 +856,7 @@ dependencies = [
  "axum",
  "axum-otel-metrics",
  "blake2",
+ "bytes",
  "clap",
  "color-eyre",
  "dotenvy",

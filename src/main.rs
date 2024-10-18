@@ -8,6 +8,7 @@ use log::debug;
 use moka::future::Cache;
 use serde::Deserialize;
 use std::time::Duration;
+use bytes::Bytes;
 use tokio::net::TcpListener;
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::{Any, CorsLayer};
@@ -116,7 +117,7 @@ async fn main() -> color_eyre::Result<()> {
         .with_registry(prometheus::default_registry().to_owned())
         .build();
 
-    let cache: Cache<String, String> = Cache::builder()
+    let cache: Cache<String, Bytes> = Cache::builder()
         .max_capacity(args.cache.cache_max_size)
         .time_to_live(Duration::from_secs(args.cache.cache_ttl)) // 1 hour
         .build();
