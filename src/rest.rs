@@ -5,15 +5,14 @@ use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{get, post, put};
-use axum::{debug_handler, Json, Router};
+use axum::{Json, Router};
 use axum_extra::headers::{ETag, IfNoneMatch};
 use axum_extra::TypedHeader;
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
-use bytes::Bytes;
 use serde::Deserialize;
 use std::str::FromStr;
-use tracing::{debug, warn};
+use tracing::warn;
 
 #[derive(Debug, Clone, Deserialize)]
 struct SearchQueryParams {
@@ -110,7 +109,7 @@ fn create_etag(content: &[u8]) -> color_eyre::Result<ETag> {
 mod tests {
     use super::*;
     use crate::hltb::HowLongToBeat;
-    use axum_extra::headers::{Header, HeaderMapExt};
+    use axum_extra::headers::Header;
     use axum_test::TestServer;
     use tracing::info;
     use tracing_test::traced_test;
