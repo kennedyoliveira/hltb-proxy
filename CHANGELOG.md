@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2024-10-18
+
+### 🚀 Features
+
+- *(log)* Add url to logging
+- *(http)* Make response compression optional
+- *(http)* Add ETag support for query endpoints (#9)
+
+### 🐛 Bug Fixes
+
+- *(api)* Better error handling for proxied APIs (#6)
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Improve release automation tasks
+- *(release)* Improve docker deployment to fly.io
+- *(release)* Fix health check setup on fly.io
+- *(release)* Add limits on fly.io
+- *(benchmark)* Add basic API benchmarks using k6
+- *(release)* Change fly.io default region to US
+- *(k8s)* Add Kubernetes deployment
+- *(k8s)* Add Kubernetes deployment
+- *(k8s)* Fix k8s Prometheus service monitor
+- Add ignore for k6 benchmarks
+
+### Build
+
+- *(deps)* Bump clap from 4.5.19 to 4.5.20 (#7)
+
 ## [0.2.0] - 2024-10-06
 
 ### 🚀 Features
@@ -11,6 +40,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Fix build issues for arm64
+- Release version v0.2.0
 
 ### Build
 
