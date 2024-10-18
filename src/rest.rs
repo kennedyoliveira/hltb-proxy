@@ -2,7 +2,7 @@ use crate::hltb::QueryOptions;
 use crate::http::{AppError, HtlbProxiedResponse};
 use crate::{AppState, ReplaceKeyQueryArgs};
 use axum::extract::{Query, State};
-use axum::http::{Response, StatusCode};
+use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{get, post, put};
 use axum::{Json, Router};
