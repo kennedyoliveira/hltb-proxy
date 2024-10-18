@@ -1,2 +1,7 @@
 /target
 /.idea
+
+# For k6 benchmark development
+/node_modules
+/package.json
+/package-lock.json
