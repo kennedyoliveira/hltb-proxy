@@ -7,13 +7,13 @@ pub(crate) use models::*;
 use async_recursion::async_recursion;
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
+use bytes::Bytes;
 use color_eyre::eyre::bail;
 use log::{info, warn};
 use moka::future::Cache;
 use prometheus::{register_counter_vec, CounterVec};
 use reqwest::StatusCode;
 use std::sync::LazyLock;
-use bytes::Bytes;
 use thiserror::Error;
 use tracing::{debug, error, instrument};
 
