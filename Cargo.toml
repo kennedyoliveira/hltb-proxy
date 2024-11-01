@@ -24,7 +24,7 @@ regex = "1.11.0"
 bytes = "1.7"
 
 # async
-tokio = { version = "1.40", features = ["macros", "rt-multi-thread", "parking_lot", "signal"] }
+tokio = { version = "1.41", features = ["macros", "rt-multi-thread", "parking_lot", "signal"] }
 async-recursion = "1.1"
 
 # http
