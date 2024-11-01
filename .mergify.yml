@@ -1,0 +1,8 @@
+queue_rules:
+  - name: Dependency Updates
+    merge_method: squash
+    queue_conditions:
+        - check-success = Run tests
+        - author = dependabot[bot]
+    merge_conditions:
+        - check-success = Run tests
