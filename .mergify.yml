@@ -9,9 +9,9 @@ queue_rules:
     branch_protection_injection_mode: none
 
 pull_request_rules:
-  - name: Delete merged branches
+  - name: Delete merged feature branches
     conditions:
       - merged
+      - head ~= feature/.*
     actions:
         delete_head_branch:
-      
