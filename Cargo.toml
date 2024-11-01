@@ -48,7 +48,7 @@ axum-otel-metrics = { git = "https://github.com/kennedyoliveira/axum-otel-metric
 
 [dev-dependencies]
 tracing-test = "0.2"
-axum-test = { version = "16.2", features = ["reqwest"] }
+axum-test = { version = "16.3", features = ["reqwest"] }
 
 # The profile that 'cargo dist' will build with
 [profile.dist]
