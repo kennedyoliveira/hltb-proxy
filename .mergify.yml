@@ -7,6 +7,15 @@ queue_rules:
     merge_conditions:
       - check-success = Run tests
 pull_request_rules:
+  - name: Auto approve dependabot PRs
+    conditions:
+      - author = dependabot[bot]
+      - check-success = Run tests
+      - check-success = Run linters
+    actions:
+      review:
+        type: APPROVE
+        message: Automatically approved
   - name: Queue dependency updates
     conditions:
       - author = dependabot[bot]
