@@ -95,3 +95,7 @@ prepare-release:
 prepare-release:
     .\prepare-release.ps1
 
+[group('release')]
+[doc('Generate changelog for unreleased changes')]
+changelog:
+    git-cliff --bump --unreleased
