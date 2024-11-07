@@ -20,8 +20,10 @@ jobs:
           components: cargo, rustc
           toolchain: stable
 
-      - name: Install just
-        run: cargo install just
+      - name: Setup basic tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just
 
       - name: Install pre-requisites
         run: just install-prereqs

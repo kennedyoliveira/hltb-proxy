@@ -12,17 +12,19 @@ default:
 # install the required dependencies to build/release the project
 [private]
 install-rust-prereqs:
-    cargo install cargo-nextest cargo-edit git-cliff --locked
+    cargo binstall cargo-nextest cargo-edit git-cliff --locked --no-confirm
 
 [windows]
 [private]
 install-prereqs-other:
-    choco install openssl
+    choco install openssl --yes
+    Set-ExecutionPolicy Unrestricted -Scope Process; iex (iwr "https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.ps1").Content
 
 [linux]
 [private]
 install-prereqs-other:
     sudo apt-get install -y libssl-dev openssl jq build-essential
+    curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 
 [macos]
 [private]
