@@ -6,7 +6,6 @@ queue_rules:
       - author = dependabot[bot]
     merge_conditions:
       - check-success = Run tests
-    branch_protection_injection_mode: none
 
 pull_request_rules:
   - name: Delete merged feature branches
