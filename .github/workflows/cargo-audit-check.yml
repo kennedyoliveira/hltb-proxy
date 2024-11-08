@@ -1,3 +1,5 @@
+name: Cargo audit
+
 on:
   workflow_dispatch:
   schedule:
@@ -9,6 +11,7 @@ on:
       - '**/Cargo.lock'
 jobs:
   security_audit:
+    name: Security audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
