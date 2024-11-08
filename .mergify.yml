@@ -7,6 +7,20 @@ queue_rules:
     merge_conditions:
       - check-success = Run tests
 pull_request_rules:
+  - name: Automatic merge
+    description: Merge when PR passes all branch protection and has label automerge
+    conditions:
+      - or:
+          - label = automerge
+          - title ~= ^\[AUTO\]\.*
+      - check-success = Run tests
+      - check-success = Run linters
+      - author = kennedyoliveira
+    actions:
+      review:
+        type: APPROVE
+      merge:
+        method: squash
   - name: Auto approve dependabot PRs
     conditions:
       - author = dependabot[bot]
