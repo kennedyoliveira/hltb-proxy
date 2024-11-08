@@ -44,7 +44,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-logfmt = "0.3"
 log = "0.4.22"
 prometheus = "0.13"
-axum-otel-metrics = { git = "https://github.com/kennedyoliveira/axum-otel-metrics" }
+axum-otel-metrics = { version = "0.9.0-alpha.3" }
 
 [dev-dependencies]
 tracing-test = "0.2"
@@ -79,3 +79,8 @@ pkg-config = { version = '*', targets = [
     "aarch64-unknown-linux-gnu",
 ] }
 
+[patch.crates-io]
+# custom implementation with support to with_registry
+axum-otel-metrics = { git = "https://github.com/kennedyoliveira/axum-otel-metrics" }
+# required to work with latest axum-otel-metrics
+opentelemetry-prometheus = { git = "https://github.com/ttys3/opentelemetry-rust.git", branch = "opentelemetry-prometheus-sdk-0.26" }
