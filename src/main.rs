@@ -117,6 +117,8 @@ async fn main() -> color_eyre::Result<()> {
 
     let metrics = HttpMetricsLayerBuilder::new()
         .with_registry(prometheus::default_registry().to_owned())
+        .with_service_name("hltb-proxy".to_string())
+        .with_service_version(env!("CARGO_PKG_VERSION").to_string())
         .build();
 
     let cache: Cache<String, Bytes> = Cache::builder()
