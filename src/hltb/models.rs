@@ -3,13 +3,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct QueryOptions {
-    search_type: String,
-    search_terms: Vec<String>,
-    search_page: u32,
+    pub search_type: String,
+    pub search_terms: Vec<String>,
+    pub search_page: u32,
     /// Page size
-    size: u32,
-    use_cache: bool,
-    search_options: SearchOptions,
+    pub size: u32,
+    pub use_cache: bool,
+    pub search_options: SearchOptions,
 }
 
 impl QueryOptions {
@@ -41,25 +41,25 @@ impl QueryOptions {
 #[serde(rename_all = "camelCase")]
 #[derive(Default)]
 pub(crate) struct SearchOptions {
-    games: GamesOptions,
-    users: UsersOptions,
-    lists: ListsOptions,
-    filter: String,
-    sort: u32,
-    randomizer: u32,
+    pub games: GamesOptions,
+    pub users: UsersOptions,
+    pub lists: ListsOptions,
+    pub filter: String,
+    pub sort: u32,
+    pub randomizer: u32,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct GamesOptions {
-    user_id: u32,
-    platform: String,
-    sort_category: String,
-    range_category: String,
-    range_time: RangeTime,
-    gameplay: Gameplay,
-    range_year: RangeYear,
-    modifier: String,
+    pub user_id: u32,
+    pub platform: String,
+    pub sort_category: String,
+    pub range_category: String,
+    pub range_time: RangeTime,
+    pub gameplay: Gameplay,
+    pub range_year: RangeYear,
+    pub modifier: String,
 }
 
 impl Default for GamesOptions {
@@ -80,7 +80,7 @@ impl Default for GamesOptions {
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct UsersOptions {
-    sort_category: String,
+    pub sort_category: String,
 }
 
 impl Default for UsersOptions {

@@ -11,7 +11,7 @@ use std::sync::LazyLock;
 use tracing::{debug, info, instrument, trace};
 
 pub(crate) const BASE_URL: &str = "https://howlongtobeat.com";
-pub(crate) const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36";
+pub(crate) const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 struct ScriptTag {
@@ -76,9 +76,19 @@ impl ScriptTag {
 
 /// Regex for extracting the api key in js script,
 /// currently has the format `"/api/search/somekey"`
+/// and this appears in the site script files as
+/// `await fetch("/api/search/".concat("7b0f03b2").concat("54cc3099")`
 static SEARCH_API_KEY_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     debug!("Initializing search key regex");
-    Regex::new(r#""/api/search/"\.concat\("([^"]+)"\)"#).expect("Regex should be valid")
+    Regex::new(r#""/api/search/"(\.concat\("([^"]+)"\))+"#).expect("Regex should be valid")
+});
+
+/// Regex for extracting the parameters of the concat function from
+/// found via `SEARCH_API_KEY_REGEX`, since there can be multiple
+/// this will extract all of them
+static API_KEY_PARTS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    debug!("Initializing search key parts regex");
+    Regex::new(r#"\.concat\("([^"]+)"\)"#).expect("Regex should be valid")
 });
 
 static SEARCH_KEY_HISTOGRAM: LazyLock<Histogram> = LazyLock::new(|| {
@@ -283,10 +293,22 @@ impl HltbClient {
         Ok(Self::find_search_key_in_script(&script_content).map(|s| s.to_owned()))
     }
 
-    fn find_search_key_in_script(script_content: &str) -> Option<&str> {
+    fn find_search_key_in_script(script_content: &str) -> Option<String> {
+        // The idea here is to match the whole call to the function, and then extract the parts
         SEARCH_API_KEY_REGEX
             .captures(script_content)
-            .and_then(|cap| cap.get(1).map(|m| m.as_str()))
+            .and_then(|function_chain| {
+                // cap(0) is the whole function call, like "/api/search".concat("a1").concat("b2")
+                function_chain.get(0).and_then(|m| {
+                    API_KEY_PARTS_REGEX
+                        .captures_iter(m.as_str())
+                        .filter_map(|cap| cap.get(1).map(|m| m.as_str().to_owned()))
+                        .reduce(|mut acc, s| {
+                            acc.push_str(&s);
+                            acc
+                        })
+                })
+            })
     }
 
     fn find_scripts(html: &str) -> Vec<ScriptTag> {
@@ -321,9 +343,10 @@ impl Default for HltbClient {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tracing_test::traced_test;
 
     #[tokio::test]
-    #[tracing_test::traced_test]
+    #[traced_test]
     async fn test_find_search_key() {
         let client = HltbClient::default();
         let search_key = client.find_search_key().await.unwrap();
@@ -361,6 +384,6 @@ mod tests {
 
         println!("{:?}", search_key);
 
-        assert_eq!(search_key, Some("5fe4b12e81a8fb4c"));
+        assert_eq!(search_key, Some(String::from("5fe4b12e81a8fb4c")));
     }
 }
