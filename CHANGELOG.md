@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2024-11-15
+
+### 🚀 Features
+
+- Improve finding search key (#35)
+
+### ⚙️ Miscellaneous Tasks
+
+- Setup just and use binstall instead of compiling tools (#29)
+- *(rust)* Bump rust to version 1.82.0 (#30)
+- Add `changelog` task to generate pending changelog
+- Add cargo audit (#31)
+- Update dependencies and add new packages (#32)
+- *(release)* Skip mergify commits on changelog (#36)
+
+### Build
+
+- *(deps)* Bump axum-test from 16.2.0 to 16.3.0 (#13)
+- *(deps)* Bump thiserror from 1.0.64 to 1.0.65 (#12)
+- *(deps)* Bump tokio from 1.40.0 to 1.41.0 (#11)
+- *(deps)* Bump serde_json from 1.0.128 to 1.0.132 (#10)
+- *(deps)* Bump bytes from 1.7.2 to 1.8.0 (#14)
+- *(deps)* Bump serde from 1.0.210 to 1.0.214 (#23)
+- *(deps)* Bump thiserror from 1.0.65 to 2.0.0 (#27)
+- *(deps)* Bump scraper from 0.20.0 to 0.21.0 (#22)
+- *(deps)* Bump reqwest from 0.12.8 to 0.12.9 (#20)
+- *(deps)* Bump regex from 1.11.0 to 1.11.1 (#21)
+- *(deps)* Bump thiserror from 2.0.0 to 2.0.3 (#34)
+
 ## [0.3.0] - 2024-10-18
 
 ### 🚀 Features
