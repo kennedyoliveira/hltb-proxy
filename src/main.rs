@@ -60,6 +60,7 @@ pub(crate) struct AppState {
 #[derive(Debug, Clone, Deserialize)]
 struct ReplaceKeyQueryArgs {
     key: String,
+    api_path: String,
 }
 
 #[tokio::main]
@@ -126,7 +127,12 @@ async fn main() -> color_eyre::Result<()> {
         .time_to_live(Duration::from_secs(args.cache.cache_ttl)) // 1 hour
         .build();
 
-    let hltb = HowLongToBeat::new(HltbClient::default(), cache);
+    let key_cache: Cache<String, hltb::client::SearchKey> = Cache::builder()
+        .max_capacity(1)
+        .time_to_live(Duration::from_secs(60 * 60)) // 1 hour
+        .build();
+
+    let hltb = HowLongToBeat::new(HltbClient::default(), cache, key_cache);
 
     let app_state = AppState { hltb };
 
