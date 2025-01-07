@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2025-01-07
+
+### 🚀 Features
+
+- Read search key and dynamic path for search api (#54)
+
+### Build
+
+- *(deps)* Bump serde_json from 1.0.132 to 1.0.133 (#37)
+- *(deps)* Bump axum from 0.7.7 to 0.7.9 (#39)
+- *(deps)* Bump axum-extra from 0.9.4 to 0.9.6 (#41)
+- *(deps)* Bump serde from 1.0.214 to 1.0.215 (#40)
+- *(deps)* Bump tower-http from 0.6.1 to 0.6.2 (#38)
+- *(deps)* Bump rustls from 0.23.16 to 0.23.18 (#42)
+- *(deps)* Bump axum-test from 16.3.0 to 16.4.0 (#43)
+- *(deps)* Bump clap from 4.5.20 to 4.5.21 (#44)
+- *(deps)* Bump thiserror from 2.0.3 to 2.0.9 (#53)
+- *(deps)* Bump tokio from 1.41.1 to 1.42.0 (#48)
+- *(deps)* Bump bytes from 1.8.0 to 1.9.0 (#46)
+- *(deps)* Bump tracing from 0.1.40 to 0.1.41 (#47)
+- *(deps)* Bump tracing-subscriber from 0.3.18 to 0.3.19 (#45)
+
 ## [0.4.0] - 2024-11-15
 
 ### 🚀 Features
