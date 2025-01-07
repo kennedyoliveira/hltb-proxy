@@ -81,7 +81,4 @@ pkg-config = { version = '*', targets = [
 ] }
 
 [patch.crates-io]
-# custom implementation with support to with_registry
-axum-otel-metrics = { git = "https://github.com/kennedyoliveira/axum-otel-metrics" }
-# required to work with latest axum-otel-metrics
-opentelemetry-prometheus = { git = "https://github.com/ttys3/opentelemetry-rust.git", branch = "opentelemetry-prometheus-sdk-0.26" }
+
