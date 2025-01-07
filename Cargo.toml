@@ -13,7 +13,7 @@ repository = "https://github.com/kennedyoliveira/hltb-proxy"
 # utils
 color-eyre = "0.6"
 urlencoding = "2.1"
-scraper = "0.21"
+scraper = "0.22"
 moka = { version = "0.12", features = ["future"] }
 blake2 = "0.10"
 hex = "0.4"
@@ -28,9 +28,9 @@ tokio = { version = "1.42", features = ["macros", "rt-multi-thread", "parking_lo
 async-recursion = "1.1"
 
 # http
-axum = { version = "0.7", features = ["macros"] }
-axum-extra = { version = "0.9", features = ["typed-header"] }
-reqwest = { version = "0.12", features = ["gzip"] }
+axum = { version = "0.8", features = ["macros"] }
+axum-extra = { version = "0.10", features = ["typed-header"] }
+reqwest = { version = "0.12.12", features = ["gzip"] }
 tower-http = { version = "0.6", features = ["compression-full", "trace", "cors"] }
 
 # serde
@@ -44,11 +44,12 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-logfmt = "0.3"
 log = "0.4.22"
 prometheus = "0.13"
-axum-otel-metrics = { version = "0.9.0-alpha.3" }
+axum-otel-metrics = { version = "0.9" }
+opentelemetry-prometheus = "0.27"
 
 [dev-dependencies]
 tracing-test = "0.2"
-axum-test = { version = "16.4", features = ["reqwest"] }
+axum-test = { version = "17.0", features = ["reqwest"] }
 
 # The profile that 'cargo dist' will build with
 [profile.dist]
