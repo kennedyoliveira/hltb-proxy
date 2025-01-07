@@ -4,6 +4,7 @@ pub(crate) mod models;
 pub(crate) use client::HltbClient;
 pub(crate) use models::*;
 
+use crate::hltb::client::SearchKey;
 use async_recursion::async_recursion;
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
@@ -43,6 +44,7 @@ pub(crate) enum Error {
 pub(crate) struct HowLongToBeat {
     hltb_client: HltbClient,
     cache: Cache<String, Bytes>,
+    key_cache: Cache<String, SearchKey>,
 }
 
 impl Default for HowLongToBeat {
@@ -53,24 +55,41 @@ impl Default for HowLongToBeat {
             .time_to_live(Duration::from_secs(60 * 60)) // 1 hour
             .build();
 
-        Self { hltb_client, cache }
+        let key_cache: Cache<String, SearchKey> = Cache::builder()
+            .max_capacity(1)
+            .time_to_live(Duration::from_secs(60 * 60)) // 1 hour
+            .build();
+
+        Self {
+            hltb_client,
+            cache,
+            key_cache,
+        }
     }
 }
 
 const SEARCH_KEY_CACHE_KEY: &str = "search_key";
 
 impl HowLongToBeat {
-    pub(crate) fn new(hltb_client: HltbClient, cache: Cache<String, Bytes>) -> Self {
-        Self { hltb_client, cache }
+    pub(crate) fn new(
+        hltb_client: HltbClient,
+        cache: Cache<String, Bytes>,
+        key_cache: Cache<String, SearchKey>,
+    ) -> Self {
+        Self {
+            hltb_client,
+            cache,
+            key_cache,
+        }
     }
 
     #[instrument(skip_all)]
-    pub(crate) async fn replace_search_key(&self, new_key: &str) {
-        self.cache
+    pub(crate) async fn replace_search_key(&self, new_key: SearchKey) {
+        self.key_cache
             .entry_by_ref(SEARCH_KEY_CACHE_KEY)
             .and_upsert_with(|value| async move {
                 debug!("Replacing search key {:?} with {:?}", value, new_key);
-                Bytes::from(new_key.to_string())
+                new_key
             })
             .await;
     }
@@ -131,9 +150,9 @@ impl HowLongToBeat {
         }
     }
 
-    pub(crate) async fn get_search_key(&self) -> color_eyre::Result<String> {
+    pub(crate) async fn get_search_key(&self) -> color_eyre::Result<SearchKey> {
         let search_key = self
-            .cache
+            .key_cache
             .optionally_get_with_by_ref(SEARCH_KEY_CACHE_KEY, async {
                 info!("Searching for search_key");
                 self.hltb_client
@@ -143,7 +162,6 @@ impl HowLongToBeat {
                         error!("Failed to find search key: {:?}", e);
                         None
                     })
-                    .map(Bytes::from)
             })
             .await;
 
@@ -151,7 +169,7 @@ impl HowLongToBeat {
             bail!("Failed to find search key");
         };
 
-        Ok(String::from_utf8_lossy(&search_key[..]).into())
+        Ok(search_key)
     }
 
     fn create_cache_key(object: &str) -> color_eyre::Result<String> {

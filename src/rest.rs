@@ -1,3 +1,4 @@
+use crate::hltb::client::SearchKey;
 use crate::hltb::QueryOptions;
 use crate::http::{AppError, CachedResponse, HltbProxiedResponse};
 use crate::{AppState, ReplaceKeyQueryArgs};
@@ -74,7 +75,7 @@ async fn get_search_handler(
 
 async fn get_key_handler(State(state): State<AppState>) -> impl IntoResponse {
     match state.hltb.get_search_key().await {
-        Ok(key) => key.into_response(),
+        Ok(key) => key.key.into_response(),
         Err(e) => {
             warn!("Failed to get search key: {:?}", e);
             StatusCode::NOT_FOUND.into_response()
@@ -86,7 +87,13 @@ async fn replace_key_handler(
     State(state): State<AppState>,
     Query(args): Query<ReplaceKeyQueryArgs>,
 ) -> StatusCode {
-    state.hltb.replace_search_key(&args.key).await;
+    state
+        .hltb
+        .replace_search_key(SearchKey {
+            key: args.key,
+            api_path: args.api_path,
+        })
+        .await;
     StatusCode::NO_CONTENT
 }
 

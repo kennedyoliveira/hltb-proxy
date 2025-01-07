@@ -75,12 +75,13 @@ impl ScriptTag {
 }
 
 /// Regex for extracting the api key in js script,
-/// currently has the format `"/api/search/somekey"`
+/// currently has the format `"/api/[some-path]/somekey"`
 /// and this appears in the site script files as
 /// `await fetch("/api/search/".concat("7b0f03b2").concat("54cc3099")`
+/// The `[some-path]` part has been search or lookup so far, but it seems to be changing randomly
 static SEARCH_API_KEY_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     debug!("Initializing search key regex");
-    Regex::new(r#""/api/search/"(\.concat\("([^"]+)"\))+"#).expect("Regex should be valid")
+    Regex::new(r#""/api/(search|lookup)/"(\.concat\("([^"]+)"\))+"#).expect("Regex should be valid")
 });
 
 /// Regex for extracting the parameters of the concat function from
@@ -105,6 +106,17 @@ pub(crate) struct HltbClient {
     http_client: reqwest::Client,
 }
 
+/// The search key to use to query the HLTB API.
+/// It involves a key and the api path to use, both the key and the path
+/// changes from time to time
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct SearchKey {
+    /// The key seems to be an alphanumeric string, like `a1b2c3d4`
+    pub key: String,
+    /// The path to use to query the API, like `search` or `lookup`
+    pub api_path: String,
+}
+
 impl HltbClient {
     #[allow(dead_code)]
     pub(crate) fn new(http_client: reqwest::Client) -> Self {
@@ -117,7 +129,7 @@ impl HltbClient {
     #[instrument(skip(self, search_key, query_options))]
     pub(crate) async fn query(
         &self,
-        search_key: &str,
+        search_key: &SearchKey,
         query_options: &QueryOptions,
     ) -> Result<Bytes, Error> {
         debug!(
@@ -127,7 +139,10 @@ impl HltbClient {
 
         let title = query_options.get_title();
         let referer = format!("{}/?q={}", BASE_URL, urlencoding::encode(&title));
-        let url = format!("{}/api/search/{}", BASE_URL, search_key);
+        let url = format!(
+            "{}/api/{}/{}",
+            BASE_URL, search_key.api_path, search_key.key
+        );
         let body = serde_json::to_string(query_options)?;
 
         debug!(
@@ -166,7 +181,7 @@ impl HltbClient {
     /// the key is also changed from time to time, this function will try to find
     /// the search key in the scripts of the page.
     #[instrument(skip(self))]
-    pub(crate) async fn find_search_key(&self) -> Result<Option<String>, Error> {
+    pub(crate) async fn find_search_key(&self) -> Result<Option<SearchKey>, Error> {
         let _timer = SEARCH_KEY_HISTOGRAM.start_timer();
 
         info!("Finding search key");
@@ -268,7 +283,7 @@ impl HltbClient {
     }
 
     #[instrument(skip(self, script_tag))]
-    async fn search_key(&self, script_tag: &ScriptTag) -> color_eyre::Result<Option<String>> {
+    async fn search_key(&self, script_tag: &ScriptTag) -> color_eyre::Result<Option<SearchKey>> {
         let Some(script_url) = script_tag.src.as_deref() else {
             bail!("Script tag does not have a source URL");
         };
@@ -290,24 +305,36 @@ impl HltbClient {
             .text()
             .await?;
 
-        Ok(Self::find_search_key_in_script(&script_content).map(|s| s.to_owned()))
+        Ok(Self::find_search_key_in_script(&script_content))
     }
 
-    fn find_search_key_in_script(script_content: &str) -> Option<String> {
+    fn find_search_key_in_script(script_content: &str) -> Option<SearchKey> {
         // The idea here is to match the whole call to the function, and then extract the parts
         SEARCH_API_KEY_REGEX
             .captures(script_content)
-            .and_then(|function_chain| {
+            .and_then(|captures| {
                 // cap(0) is the whole function call, like "/api/search".concat("a1").concat("b2")
-                function_chain.get(0).and_then(|m| {
-                    API_KEY_PARTS_REGEX
-                        .captures_iter(m.as_str())
-                        .filter_map(|cap| cap.get(1).map(|m| m.as_str().to_owned()))
-                        .reduce(|mut acc, s| {
-                            acc.push_str(&s);
-                            acc
+                captures
+                    .get(0)
+                    .and_then(|m| {
+                        API_KEY_PARTS_REGEX
+                            .captures_iter(m.as_str())
+                            .filter_map(|cap| cap.get(1).map(|m| m.as_str().to_owned()))
+                            .reduce(|mut acc, s| {
+                                acc.push_str(&s);
+                                acc
+                            })
+                    })
+                    .and_then(|key| {
+                        debug!(
+                            "Extracting api call path from {}",
+                            captures.get(1).unwrap().as_str()
+                        );
+                        captures.get(1).map(|api_path| SearchKey {
+                            key,
+                            api_path: api_path.as_str().to_owned(),
                         })
-                })
+                    })
             })
     }
 
@@ -384,6 +411,29 @@ mod tests {
 
         println!("{:?}", search_key);
 
-        assert_eq!(search_key, Some(String::from("5fe4b12e81a8fb4c")));
+        assert_eq!(
+            search_key,
+            Some(SearchKey {
+                key: String::from("5fe4b12e81a8fb4c"),
+                api_path: String::from("search")
+            })
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_extract_search_key_from_script_2() {
+        let script_content = include_str!("../../resources/tests/_app-hash_lookup.js");
+        let search_key = HltbClient::find_search_key_in_script(script_content);
+
+        println!("{:?}", search_key);
+
+        assert_eq!(
+            search_key,
+            Some(SearchKey {
+                key: String::from("e6e71df581a39f40"),
+                api_path: String::from("lookup")
+            })
+        );
     }
 }

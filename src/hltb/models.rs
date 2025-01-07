@@ -120,6 +120,7 @@ pub(crate) struct Gameplay {
     perspective: String,
     flow: String,
     genre: String,
+    difficulty: String,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
