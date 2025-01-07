@@ -11,7 +11,7 @@ use axum_extra::headers::{ETag, IfNoneMatch};
 use axum_extra::TypedHeader;
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use tracing::warn;
 
@@ -19,6 +19,20 @@ use tracing::warn;
 struct SearchQueryParams {
     q: String,
     page: Option<u32>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+struct HealthStatus {
+    /// Application version
+    version: String,
+}
+
+impl Default for HealthStatus {
+    fn default() -> Self {
+        Self {
+            version: env!("CARGO_PKG_VERSION").to_string(),
+        }
+    }
 }
 
 pub(crate) fn routes() -> Router<AppState> {
@@ -97,8 +111,8 @@ async fn replace_key_handler(
     StatusCode::NO_CONTENT
 }
 
-async fn health_handler() -> StatusCode {
-    StatusCode::OK
+async fn health_handler() -> Json<HealthStatus> {
+    Json(HealthStatus::default())
 }
 
 fn create_etag(content: &[u8]) -> color_eyre::Result<ETag> {
