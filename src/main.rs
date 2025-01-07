@@ -1,11 +1,13 @@
 use crate::hltb::{HltbClient, HowLongToBeat};
 use axum::http::Method;
+use axum::routing::get;
 use axum::Router;
 use axum_otel_metrics::HttpMetricsLayerBuilder;
 use bytes::Bytes;
 use clap::Parser;
 use dotenvy::dotenv;
 use moka::future::Cache;
+use prometheus::{Encoder, TextEncoder};
 use serde::Deserialize;
 use std::time::Duration;
 use tokio::net::TcpListener;
@@ -117,9 +119,13 @@ async fn main() -> color_eyre::Result<()> {
         .init();
 
     let metrics = HttpMetricsLayerBuilder::new()
-        .with_registry(prometheus::default_registry().to_owned())
         .with_service_name("hltb-proxy".to_string())
         .with_service_version(env!("CARGO_PKG_VERSION").to_string())
+        .with_metric_reader(
+            opentelemetry_prometheus::exporter()
+                .with_registry(prometheus::default_registry().to_owned())
+                .build()?,
+        )
         .build();
 
     let cache: Cache<String, Bytes> = Cache::builder()
@@ -136,7 +142,16 @@ async fn main() -> color_eyre::Result<()> {
 
     let app_state = AppState { hltb };
 
-    let mut router = Router::new().merge(rest::routes()).merge(metrics.routes());
+    let mut router = Router::new().merge(rest::routes()).route(
+        "/metrics",
+        get(|| async {
+            let mut buffer = Vec::new();
+            let encoder = TextEncoder::new();
+            encoder.encode(&prometheus::gather(), &mut buffer).unwrap();
+            // return metrics
+            String::from_utf8(buffer).unwrap()
+        }),
+    );
 
     if args.enable_compression {
         debug!("Enabling response compression");
