@@ -81,7 +81,7 @@ impl ScriptTag {
 /// The `[some-path]` part has been search or lookup so far, but it seems to be changing randomly
 static SEARCH_API_KEY_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     debug!("Initializing search key regex");
-    Regex::new(r#""/api/(search|lookup)/"(\.concat\("([^"]+)"\))+"#).expect("Regex should be valid")
+    Regex::new(r#""/api/([a-zA-Z0-9]+?)/"(\.concat\("([^"]+)"\))+"#).expect("Regex should be valid")
 });
 
 /// Regex for extracting the parameters of the concat function from
@@ -433,6 +433,23 @@ mod tests {
             Some(SearchKey {
                 key: String::from("e6e71df581a39f40"),
                 api_path: String::from("lookup")
+            })
+        );
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_extract_search_key_from_script_3() {
+        let script_content = include_str!("../../resources/tests/_app-43749832a8c6a98a.js");
+        let search_key = HltbClient::find_search_key_in_script(script_content);
+
+        println!("{:?}", search_key);
+
+        assert_eq!(
+            search_key,
+            Some(SearchKey {
+                key: String::from("7a60504381a39f40"),
+                api_path: String::from("s")
             })
         );
     }
