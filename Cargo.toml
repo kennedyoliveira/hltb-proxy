@@ -42,14 +42,14 @@ tracing = "0.1"
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-logfmt = "0.3"
-log = "0.4.22"
+log = "0.4.25"
 prometheus = "0.13"
 axum-otel-metrics = { version = "0.9" }
 opentelemetry-prometheus = "0.27"
 
 [dev-dependencies]
 tracing-test = "0.2"
-axum-test = { version = "17.0", features = ["reqwest"] }
+axum-test = { version = "17.1", features = ["reqwest"] }
 
 # The profile that 'cargo dist' will build with
 [profile.dist]
