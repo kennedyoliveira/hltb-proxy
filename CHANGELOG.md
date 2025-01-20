@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.1] - 2025-01-20
+
+### 🐛 Bug Fixes
+
+- Improve API path detection (#62)
+
+### ⚙️ Miscellaneous Tasks
+
+- Add version to health endpoint (#57)
+
+### Build
+
+- *(deps)* Bump axum-test from 17.0.1 to 17.0.2 (#58)
+- *(deps)* Bump clap from 4.5.23 to 4.5.26 (#59)
+- *(deps)* Bump tokio from 1.42.0 to 1.43.0 (#60)
+- *(deps)* Bump thiserror from 2.0.9 to 2.0.11 (#61)
+
 ## [0.5.0] - 2025-01-07
 
 ### 🚀 Features
