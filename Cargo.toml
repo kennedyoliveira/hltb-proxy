@@ -1,6 +1,6 @@
 [package]
 name = "hltb-proxy"
-version = "0.5.1"
+version = "0.5.2"
 edition = "2021"
 description = "Lightweight proxy for How Long to Beat API, with caching and CORS support"
 authors = [

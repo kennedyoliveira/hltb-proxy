@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.2] - 2025-01-28
+
+### Build
+
+- *(deps)* Bump log from 0.4.22 to 0.4.25 (#63)
+- *(deps)* Bump axum-test from 17.0.2 to 17.1.0 (#65)
+- *(deps)* Bump serde_json from 1.0.135 to 1.0.137 (#64)
+- *(deps)* Bump clap from 4.5.26 to 4.5.27 (#66)
+- Bump arm runner for deploy
+
 ## [0.5.1] - 2025-01-20
 
 ### 🐛 Bug Fixes
