@@ -7,6 +7,8 @@ use bytes::Bytes;
 use clap::Parser;
 use dotenvy::dotenv;
 use moka::future::Cache;
+use opentelemetry::{global, KeyValue};
+use opentelemetry_sdk::metrics::SdkMeterProvider;
 use prometheus::{Encoder, TextEncoder};
 use serde::Deserialize;
 use std::time::Duration;
@@ -118,15 +120,23 @@ async fn main() -> color_eyre::Result<()> {
         .with(default_log_filter)
         .init();
 
-    let metrics = HttpMetricsLayerBuilder::new()
-        .with_service_name("hltb-proxy".to_string())
-        .with_service_version(env!("CARGO_PKG_VERSION").to_string())
-        .with_metric_reader(
-            opentelemetry_prometheus::exporter()
-                .with_registry(prometheus::default_registry().to_owned())
-                .build()?,
+    let prometheus_exporter = opentelemetry_prometheus::exporter()
+        .with_registry(prometheus::default_registry().to_owned())
+        .build()?;
+
+    let meter_provider = SdkMeterProvider::builder()
+        .with_reader(prometheus_exporter)
+        .with_resource(
+            opentelemetry_sdk::Resource::builder()
+                .with_service_name("hltb-proxy".to_string())
+                .with_attribute(KeyValue::new("service.version", env!("CARGO_PKG_VERSION")))
+                .build(),
         )
         .build();
+
+    let metrics = HttpMetricsLayerBuilder::new().build();
+
+    global::set_meter_provider(meter_provider.clone());
 
     let cache: Cache<String, Bytes> = Cache::builder()
         .max_capacity(args.cache.cache_max_size)
