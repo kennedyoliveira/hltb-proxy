@@ -45,7 +45,7 @@ tracing-logfmt = "0.3"
 log = "0.4.26"
 prometheus = "0.13"
 axum-otel-metrics = { version = "0.10" }
-opentelemetry = "0.28"
+opentelemetry = "0.29"
 opentelemetry_sdk = "0.28"
 opentelemetry-prometheus = "0.28"
 
