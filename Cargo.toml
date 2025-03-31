@@ -51,7 +51,7 @@ opentelemetry-prometheus = "0.29"
 
 [dev-dependencies]
 tracing-test = "0.2"
-axum-test = { version = "17.2", features = ["reqwest"] }
+axum-test = { version = "17.3", features = ["reqwest"] }
 
 # The profile that 'cargo dist' will build with
 [profile.dist]
