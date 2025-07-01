@@ -123,7 +123,7 @@ fn create_etag(content: &[u8]) -> color_eyre::Result<ETag> {
     hasher.finalize_variable(&mut buf)?;
 
     let etag = hex::encode(buf);
-    Ok(ETag::from_str(&format!("\"{}\"", etag))?)
+    Ok(ETag::from_str(&format!("\"{etag}\""))?)
 }
 
 #[cfg(test)]
@@ -167,7 +167,7 @@ mod tests {
         let headers = resp.headers().to_owned();
         let body = resp.text().await?;
 
-        println!("Body: {}", body);
+        println!("Body: {body}");
 
         assert_eq!(status_code, StatusCode::OK);
         assert_ne!(headers.get("etag"), None);
@@ -197,7 +197,7 @@ mod tests {
         let headers = first_resp.headers().to_owned();
         let body = first_resp.text().await?;
 
-        println!("Body: {}", body);
+        println!("Body: {body}");
 
         assert_eq!(status_code, StatusCode::OK);
 
@@ -241,7 +241,7 @@ mod tests {
         let headers = first_resp.headers().to_owned();
         let body = first_resp.text().await?;
 
-        println!("Body: {}", body);
+        println!("Body: {body}");
 
         assert_eq!(status_code, StatusCode::OK);
 
