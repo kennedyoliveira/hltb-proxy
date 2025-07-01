@@ -31,15 +31,15 @@ impl Display for ScriptTag {
         }
 
         if let Some(type_) = &self.type_ {
-            write!(f, "type=\"{}\" ", type_)?;
+            write!(f, "type=\"{type_}\" ")?;
         }
 
         if let Some(id) = &self.id {
-            write!(f, "id=\"{}\" ", id)?;
+            write!(f, "id=\"{id}\" ")?;
         }
 
         if let Some(src) = &self.src {
-            write!(f, "src=\"{}\" ", src)?;
+            write!(f, "src=\"{src}\" ")?;
         }
 
         write!(f, "/>")
@@ -223,7 +223,7 @@ impl HltbClient {
                     info!("Failed to find search key in script {}", script);
                 }
                 Err(e) => {
-                    error!("Failed to search key in script {}: {}", script, e);
+                    error!("Failed to search key in script {script}: {e}");
                 }
             }
         }
@@ -265,7 +265,7 @@ impl HltbClient {
                     info!("Search key not found in script {}", script);
                 }
                 Err(e) => {
-                    error!("Failed to search key in script {}: {}", script, e);
+                    error!("Failed to search key in script {script}: {e}");
                 }
             }
         }
@@ -289,7 +289,7 @@ impl HltbClient {
         };
 
         let script_url = if script_tag.is_src_relative() {
-            &format!("{}{}", BASE_URL, script_url)
+            &format!("{BASE_URL}{script_url}")
         } else {
             script_url
         };
@@ -378,7 +378,7 @@ mod tests {
         let client = HltbClient::default();
         let search_key = client.find_search_key().await.unwrap();
 
-        println!("{:?}", search_key);
+        println!("{search_key:?}");
         assert!(search_key.is_some());
 
         info!("Testing if the search key is correct");
@@ -398,7 +398,7 @@ mod tests {
         let script_urls = HltbClient::find_scripts(index_page_content);
 
         for script_url in &script_urls {
-            println!("{:?}", script_url);
+            println!("{script_url:?}");
         }
 
         assert_eq!(script_urls.len(), 13);
@@ -409,7 +409,7 @@ mod tests {
         let script_content = include_str!("../../resources/tests/_app-hash.js");
         let search_key = HltbClient::find_search_key_in_script(script_content);
 
-        println!("{:?}", search_key);
+        println!("{search_key:?}");
 
         assert_eq!(
             search_key,
@@ -426,7 +426,7 @@ mod tests {
         let script_content = include_str!("../../resources/tests/_app-hash_lookup.js");
         let search_key = HltbClient::find_search_key_in_script(script_content);
 
-        println!("{:?}", search_key);
+        println!("{search_key:?}");
 
         assert_eq!(
             search_key,
@@ -443,7 +443,7 @@ mod tests {
         let script_content = include_str!("../../resources/tests/_app-43749832a8c6a98a.js");
         let search_key = HltbClient::find_search_key_in_script(script_content);
 
-        println!("{:?}", search_key);
+        println!("{search_key:?}");
 
         assert_eq!(
             search_key,
