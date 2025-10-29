@@ -43,7 +43,7 @@ tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-logfmt = "0.3"
 log = "0.4.27"
-prometheus = "0.13"
+prometheus = "0.14"
 axum-otel-metrics = { version = "0.10" }
 opentelemetry = "0.29"
 opentelemetry_sdk = "0.29"
